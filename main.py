@@ -18,10 +18,11 @@ while True:
     cropped_img = gray_scale[BOX_Y:BOX_Y + BOX_SIZE, BOX_X:BOX_X + BOX_SIZE]
 
     # Applying Gaussian Blur
-    cropped_img = cv2.GaussianBlur(cropped_img, (21, 21), 0)
+    cropped_img = cv2.GaussianBlur(cropped_img, (61, 61), 0)
+    cropped_img = cv2.medianBlur(cropped_img, 27)
 
-    # Applying Adaptive Threshold
-    cropped_img = cv2.adaptiveThreshold(cropped_img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 115, 1)
+    # Applying Threshold
+    cropped_img = cv2.adaptiveThreshold(cropped_img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 99, 1)
 
     # Drawing Box in the given coordinates
     cv2.rectangle(frame, (BOX_X, BOX_Y), (BOX_X + BOX_SIZE, BOX_Y + BOX_SIZE), (255, 0, 0), 2)
