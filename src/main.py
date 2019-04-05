@@ -1,10 +1,10 @@
 import os
 import time
-import datetime
-import cv2
-import numpy as np
 
-from bg_extraction import remove_bg, reset_bg
+import cv2
+
+from src.bg_extraction import remove_bg, reset_bg
+from src.test import predict
 
 # Initializing Video capture
 cap = cv2.VideoCapture(0)
@@ -12,7 +12,7 @@ cap = cv2.VideoCapture(0)
 # Box parameters
 BOX_SIZE = 300
 BOX_X, BOX_Y = int(cap.get(3) / 8), int(cap.get(4) / 2 - BOX_SIZE // 2)
-box_color = (0, 0, 255)	# red
+box_color = (0, 0, 255)  # red
 
 FILENAME = 'E'
 
@@ -59,6 +59,7 @@ while True:
 	if keyCode == 115:
 		if img is not None:
 			print("s pressed. Saving picture...")
+			print(predict([img.ravel()], "SVN"))
 
 			if not os.path.exists("../samples/{}".format(FILENAME)):
 				os.makedirs("../samples/{}".format(FILENAME))
