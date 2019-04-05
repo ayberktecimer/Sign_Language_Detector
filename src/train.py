@@ -1,29 +1,38 @@
 import os
-import sys
-
-import numpy
-import numpy as np
-import pandas as pd
+import cv2
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
-import cv2
-
-features = []
-labels = []
-for imageName in os.listdir("../samples"):
+trainFeatures = []
+trainLabels = []
+for imageName in os.listdir("../samples/train"):
 	imageLabel = imageName[0]
-	features.append(cv2.imread("../samples/" + imageName, 0).ravel())
-	labels.append(imageLabel)
+	trainFeatures.append(cv2.imread("../samples/train/" + imageName, 0).ravel())
+	trainLabels.append(imageLabel)
 	print(imageName, imageLabel)
 
-# features = features.ravel()
-# labels = np.array(labels)
-# X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
-# y = np.array([1, 1, 1, 2, 2, 2])
 clf = LinearDiscriminantAnalysis()
-clf.fit(features, labels)
+clf.fit(trainFeatures, trainLabels)
 LinearDiscriminantAnalysis(n_components=None, priors=None, shrinkage=None,
 						   solver='svd', store_covariance=False, tol=0.0001)
 
-toBePredicted = [cv2.imread("../samples/C-1554389496.JPG", 0).ravel()]
-print(clf.predict(toBePredicted))
+testFeatures = []
+testLabels = []
+for imageName in os.listdir("../samples/test"):
+	imageLabel = imageName[0]
+	testFeatures.append(cv2.imread("../samples/test/" + imageName, 0).ravel())
+	testLabels.append(imageLabel)
+	print(imageName, imageLabel)
+
+countTrue = 0
+countFalse = 0
+predictedLabels = clf.predict(testFeatures)
+for i in range(len(testLabels)):
+	if testLabels[i] == predictedLabels[i]:
+		print("TRUE", "Predicted:", predictedLabels[i], "Actual:", testLabels[i])
+		countTrue += 1
+	else:
+		print("FALSE", "Predicted:", predictedLabels[i], "Actual:", testLabels[i])
+		countFalse += 1
+
+accuracy = countTrue / (countTrue + countFalse)
+print("Accuracy", accuracy)
