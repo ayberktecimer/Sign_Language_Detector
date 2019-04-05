@@ -1,0 +1,1 @@
+image'i array'e çevirince sadece 0 ve 255 yok, 1 ve 2 de var nadiren
