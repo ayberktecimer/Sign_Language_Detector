@@ -4,7 +4,7 @@ import datetime
 import cv2
 import numpy as np
 
-from bg_extraction import remove_bg, reset_bg
+from src.bg_extraction import remove_bg, reset_bg
 
 # Initializing Video capture
 cap = cv2.VideoCapture(0)
