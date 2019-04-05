@@ -59,7 +59,7 @@ while True:
 	if keyCode == 115:
 		if img is not None:
 			print("s pressed. Saving picture...")
-			print(predict([img.ravel()]))
+			print(predict([img.ravel()], "SVN"))
 
 			if not os.path.exists("../samples/{}".format(FILENAME)):
 				os.makedirs("../samples/{}".format(FILENAME))
