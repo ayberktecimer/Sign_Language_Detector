@@ -8,14 +8,22 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 import cv2
 
-im = cv2.imread("../samples/A/A-1554389273.JPG", 0)
-numpy.set_printoptions(threshold=sys.maxsize)
-print(im)
+features = []
+labels = []
+for imageName in os.listdir("../samples"):
+	imageLabel = imageName[0]
+	features.append(cv2.imread("../samples/" + imageName, 0).ravel())
+	labels.append(imageLabel)
+	print(imageName, imageLabel)
 
-X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
-y = np.array([1, 1, 1, 2, 2, 2])
+# features = features.ravel()
+# labels = np.array(labels)
+# X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
+# y = np.array([1, 1, 1, 2, 2, 2])
 clf = LinearDiscriminantAnalysis()
-clf.fit(X, y)
+clf.fit(features, labels)
 LinearDiscriminantAnalysis(n_components=None, priors=None, shrinkage=None,
 						   solver='svd', store_covariance=False, tol=0.0001)
-print(clf.predict([[-0.8, -1]]))
+
+toBePredicted = [cv2.imread("../samples/C-1554389496.JPG", 0).ravel()]
+print(clf.predict(toBePredicted))
