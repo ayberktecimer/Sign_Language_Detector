@@ -1,14 +1,39 @@
+import os
 import cv2
+import pickle
 
-from bg_extraction import remove_bg
+# Load model from saved file
+with open('model.obj', 'rb') as fp:
+	model = pickle.load(fp)
 
 
-img = cv2.imread('../samples/A/A-1554389273.JPG', 0)
+def predict(features):
+	return model.predict(features)
 
 
-img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 121, 21)
+def testImages():
+	# Create test features and labels
+	testFeatures = []
+	testLabels = []
+	for imageName in os.listdir("../samples/test"):
+		imageLabel = imageName[0]
+		testFeatures.append(cv2.imread("../samples/test/" + imageName, 0).ravel())
+		testLabels.append(imageLabel)
+		print(imageName, imageLabel)
 
-cv2.imshow('abc', img)
+	# testFeatures = reduceWithPCA(testFeatures, 25) # TODO: to enable PCA, uncomment this line
 
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+	# Test and calculate accuracy
+	countTrue = 0
+	countFalse = 0
+	predictedLabels = predict(testFeatures)
+	for i in range(len(testLabels)):
+		if testLabels[i] == predictedLabels[i]:
+			print("TRUE", "Predicted:", predictedLabels[i], "Actual:", testLabels[i])
+			countTrue += 1
+		else:
+			print("FALSE", "Predicted:", predictedLabels[i], "Actual:", testLabels[i])
+			countFalse += 1
+
+	accuracy = countTrue / (countTrue + countFalse)
+	print("Accuracy", accuracy)
