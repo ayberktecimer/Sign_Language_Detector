@@ -1,7 +1,10 @@
 # Train
 from src.train import trainLDA, trainSVN
 
-trainLDA()
+ldaParameters = {
+	"n_components": 1
+}
+trainLDA(ldaParameters)
 trainSVN()
 
 # Test

@@ -5,16 +5,22 @@ from sklearn.decomposition import PCA
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn import svm
 import pickle
+import matplotlib.pyplot as plt
+import numpy  as np
 
 TRAIN_SET_DIRECTORY = "../samples/train/"
 
 
 def reduceWithPCA(features, n):
 	pca = PCA(n)
+	pca.fit(features)
+	plt.plot(np.cumsum(pca.explained_variance_ratio_))
+	plt.xlabel("Number of components")
+	plt.ylabel("Cumulative explained variance")
 	return pca.fit_transform(features)
 
 
-def trainLDA():
+def trainLDA(parameters):
 	"""
 	Train an LDA model with images in "../samples" folder
 	Finally, save the model to file
@@ -28,10 +34,10 @@ def trainLDA():
 		trainFeatures.append(cv2.imread(TRAIN_SET_DIRECTORY + imageName, 0).ravel())
 		trainLabels.append(imageLabel)
 
-	# trainFeatures = reduceWithPCA(trainFeatures, 25) # TODO: to enable PCA, uncomment this line
+	trainFeatures = reduceWithPCA(trainFeatures, 25)  # TODO: to enable PCA, uncomment this line
 
 	# Initialize LDA model and train
-	model = LinearDiscriminantAnalysis()
+	model = LinearDiscriminantAnalysis(**parameters)
 	model.fit(trainFeatures, trainLabels)
 
 	# Save model to file
@@ -54,7 +60,7 @@ def trainSVN():
 		trainFeatures.append(cv2.imread(TRAIN_SET_DIRECTORY + imageName, 0).ravel())
 		trainLabels.append(imageLabel)
 
-	# trainFeatures = reduceWithPCA(trainFeatures, 25) # TODO: to enable PCA, uncomment this line
+	# trainFeatures = reduceWithPCA(trainFeatures, 25)  # TODO: to enable PCA, uncomment this line
 
 	# Initialize SVN model and train
 	model = svm.SVC(gamma='scale')
