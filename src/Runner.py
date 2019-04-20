@@ -1,5 +1,4 @@
 from src.Train import trainLDA, trainSVM
-from src.Test import testLDA, testSVM
 from src.Visualization import plotConfusionMatrix
 
 # Train
@@ -10,6 +9,7 @@ trainLDA(ldaParameters)
 trainSVM()
 
 # Test
-actual, predicted = testLDA()
-plotConfusionMatrix(actual, predicted)
-testSVM()
+from src.Test import testLDA, testSVM
+
+plotConfusionMatrix(*testLDA())
+plotConfusionMatrix(*testSVM())

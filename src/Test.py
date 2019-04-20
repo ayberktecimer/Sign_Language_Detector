@@ -77,4 +77,6 @@ def testSVM():
 			countFalse += 1
 
 	accuracy = countTrue / (countTrue + countFalse)
+
 	print("SVM Accuracy", accuracy)
+	return testLabels, predictedLabels
