@@ -1,14 +1,14 @@
 # Train
-from src.train import trainLDA, trainSVN
+from src.train import trainLDA, trainSVM
 
 ldaParameters = {
 	"n_components": 1
 }
 trainLDA(ldaParameters)
-trainSVN()
+trainSVM()
 
 # Test
-from src.test import testLDA, testSVN
+from src.test import testLDA, testSVM
 
 testLDA()
-testSVN()
+testSVM()

@@ -1,17 +1,17 @@
 import os
-import cv2
 import pickle
-from sklearn.decomposition import PCA
-import numpy as np
+
+import cv2
 import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.decomposition import PCA
 from sklearn.metrics import confusion_matrix
-from sklearn.utils.multiclass import unique_labels
 
 # Load model from saved file
 with open('modelLDA.obj', 'rb') as fp:
 	model = pickle.load(fp)
-with open('modelSVN.obj', 'rb') as fp:
-	modelSVN = pickle.load(fp)
+with open('modelSVM.obj', 'rb') as fp:
+	modelSVM = pickle.load(fp)
 
 
 def reduceWithPCA(features, n):
@@ -20,8 +20,8 @@ def reduceWithPCA(features, n):
 
 
 def predict(features, algorithm):
-	if algorithm == "SVN":
-		return modelSVN.predict(features)
+	if algorithm == "SVM":
+		return modelSVM.predict(features)
 	elif algorithm == "LDA":
 		return model.predict(features)
 	else:
@@ -127,7 +127,7 @@ plot_confusion_matrix(testLabels, predictedLabels, classes=class_names, normaliz
 plt.show()
 
 
-def testSVN():
+def testSVM():
 	# Create test features and labels
 	testFeatures = []
 	testLabels = []
@@ -141,7 +141,7 @@ def testSVN():
 	# Test and calculate accuracy
 	countTrue = 0
 	countFalse = 0
-	predictedLabels = modelSVN.predict(testFeatures)
+	predictedLabels = modelSVM.predict(testFeatures)
 	for i in range(len(testLabels)):
 		if testLabels[i] == predictedLabels[i]:
 			# print("TRUE", "Predicted:", predictedLabels[i], "Actual:", testLabels[i])
@@ -151,4 +151,4 @@ def testSVN():
 			countFalse += 1
 
 	accuracy = countTrue / (countTrue + countFalse)
-	print("SVN Accuracy", accuracy)
+	print("SVM Accuracy", accuracy)

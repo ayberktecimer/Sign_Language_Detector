@@ -47,9 +47,9 @@ def trainLDA(parameters):
 	print("LDA training completed and saved to file.")
 
 
-def trainSVN():
+def trainSVM():
 	"""
-	Train an SVN model with images in "../samples" folder
+	Train an SVM model with images in "../samples" folder
 	Finally, save the model to file
 	:return:
 	"""
@@ -62,12 +62,12 @@ def trainSVN():
 
 	# trainFeatures = reduceWithPCA(trainFeatures, 25)  # TODO: to enable PCA, uncomment this line
 
-	# Initialize SVN model and train
+	# Initialize SVM model and train
 	model = svm.SVC(gamma='scale')
 	model.fit(trainFeatures, trainLabels)
 
 	# Save model to file
-	with open('modelSVN.obj', 'wb') as fp:
+	with open('modelSVM.obj', 'wb') as fp:
 		pickle.dump(model, fp)
 
-	print("SVN training completed and saved to file.")
+	print("SVM training completed and saved to file.")

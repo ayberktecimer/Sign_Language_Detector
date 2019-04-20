@@ -1,13 +1,13 @@
 import cv2
 import numpy as np
 
-'''
-	Image Preprocessing: Getting hand posture using color filtering
 
-	@param img: the part from the frame
-'''
 def get_hand_posture(img):
-
+	"""
+	Image Preprocessing: Getting hand posture using color filtering
+	:param img: the part from the frame
+	:return:
+	"""
 	# Converting to HSV
 	hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
@@ -20,7 +20,7 @@ def get_hand_posture(img):
 
 	# Applying dilation to the mask with ellipsoid to fill empty spots
 	kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-	mask = cv2.dilate(mask, kernel, iterations = 4)
+	mask = cv2.dilate(mask, kernel, iterations=4)
 
 	# Applying Gaussian Blur
 	mask = cv2.GaussianBlur(mask, (5, 5), 100)
