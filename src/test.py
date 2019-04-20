@@ -8,9 +8,9 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import confusion_matrix
 
 # Load model from saved file
-with open('modelLDA.obj', 'rb') as fp:
+with open('../generatedModels/modelLDA.obj', 'rb') as fp:
 	model = pickle.load(fp)
-with open('modelSVM.obj', 'rb') as fp:
+with open('../generatedModels/modelSVM.obj', 'rb') as fp:
 	modelSVM = pickle.load(fp)
 
 

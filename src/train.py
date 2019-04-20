@@ -41,7 +41,7 @@ def trainLDA(parameters):
 	model.fit(trainFeatures, trainLabels)
 
 	# Save model to file
-	with open('modelLDA.obj', 'wb') as fp:
+	with open('../generatedModels/modelLDA.obj', 'wb') as fp:
 		pickle.dump(model, fp)
 
 	print("LDA training completed and saved to file.")
@@ -67,7 +67,7 @@ def trainSVM():
 	model.fit(trainFeatures, trainLabels)
 
 	# Save model to file
-	with open('modelSVM.obj', 'wb') as fp:
+	with open('../generatedModels/modelSVM.obj', 'wb') as fp:
 		pickle.dump(model, fp)
 
 	print("SVM training completed and saved to file.")
