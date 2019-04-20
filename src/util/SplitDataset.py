@@ -12,7 +12,7 @@ import string
 source = '../samples'
 trainDestination = '../samples/train'
 testDestination = '../samples/test'
-TRAIN_SIZE = 80
+TRAIN_SIZE = 65
 
 chars = {}
 for char in string.ascii_uppercase:

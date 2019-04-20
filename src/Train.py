@@ -6,7 +6,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn import svm
 import pickle
 import matplotlib.pyplot as plt
-import numpy  as np
+import numpy as np
 
 TRAIN_SET_DIRECTORY = "../samples/train/"
 
@@ -34,7 +34,7 @@ def trainLDA(parameters):
 		trainFeatures.append(cv2.imread(TRAIN_SET_DIRECTORY + imageName, 0).ravel())
 		trainLabels.append(imageLabel)
 
-	trainFeatures = reduceWithPCA(trainFeatures, 25)  # TODO: to enable PCA, uncomment this line
+	trainFeatures = reduceWithPCA(trainFeatures, 50)  # TODO: to enable PCA, uncomment this line
 
 	# Initialize LDA model and train
 	model = LinearDiscriminantAnalysis(**parameters)
@@ -60,7 +60,7 @@ def trainSVM():
 		trainFeatures.append(cv2.imread(TRAIN_SET_DIRECTORY + imageName, 0).ravel())
 		trainLabels.append(imageLabel)
 
-	# trainFeatures = reduceWithPCA(trainFeatures, 25)  # TODO: to enable PCA, uncomment this line
+	trainFeatures = reduceWithPCA(trainFeatures, 50)  # TODO: to enable PCA, uncomment this line
 
 	# Initialize SVM model and train
 	model = svm.SVC(gamma='scale')

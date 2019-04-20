@@ -3,8 +3,8 @@ import time
 
 import cv2
 
-from src.bg_extraction import remove_bg, reset_bg
-from src.test import predict
+from src.image_processing.bg_extraction import remove_bg, reset_bg
+from src.Test import predict
 
 # Initializing Video capture
 cap = cv2.VideoCapture(0)
