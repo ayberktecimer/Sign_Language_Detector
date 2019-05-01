@@ -2,6 +2,7 @@ import os
 import pickle
 
 import cv2
+from sklearn.metrics import accuracy_score
 
 # Load model from saved file
 with open('../generatedModels/modelLDA.obj', 'rb') as fp:
@@ -38,19 +39,9 @@ def testLDA():
 	testFeatures = reduceWithPCA(testFeatures)  # TODO: to enable PCA, uncomment this line
 
 	# Test and calculate accuracy
-	countTrue = 0
-	countFalse = 0
 	predictedLabels = model.predict(testFeatures)
-	for i in range(len(testLabels)):
-		if testLabels[i] == predictedLabels[i]:
-			# print("TRUE", "Predicted:", predictedLabels[i], "Actual:", testLabels[i])
-			countTrue += 1
-		else:
-			# print("FALSE", "Predicted:", predictedLabels[i], "Actual:", testLabels[i])
-			countFalse += 1
+	print("LDA Accuracy: ", accuracy_score(testLabels, predictedLabels))
 
-	accuracy = countTrue / (countTrue + countFalse)
-	print("LDA Accuracy", accuracy)
 	return testLabels, predictedLabels
 
 
@@ -66,18 +57,7 @@ def testSVM():
 	testFeatures = reduceWithPCA(testFeatures)  # TODO: to enable PCA, uncomment this line
 
 	# Test and calculate accuracy
-	countTrue = 0
-	countFalse = 0
 	predictedLabels = modelSVM.predict(testFeatures)
-	for i in range(len(testLabels)):
-		if testLabels[i] == predictedLabels[i]:
-			# print("TRUE", "Predicted:", predictedLabels[i], "Actual:", testLabels[i])
-			countTrue += 1
-		else:
-			# print("FALSE", "Predicted:", predictedLabels[i], "Actual:", testLabels[i])
-			countFalse += 1
+	print("SVM Accuracy: ", accuracy_score(testLabels, predictedLabels))
 
-	accuracy = countTrue / (countTrue + countFalse)
-
-	print("SVM Accuracy", accuracy)
 	return testLabels, predictedLabels
