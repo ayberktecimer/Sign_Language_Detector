@@ -2,7 +2,7 @@ import os
 import pickle
 
 import cv2
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 # Load model from saved file
 with open('../generatedModels/modelLDA.obj', 'rb') as fp:
@@ -38,11 +38,10 @@ def testLDA():
 
 	testFeatures = reduceWithPCA(testFeatures)  # TODO: to enable PCA, uncomment this line
 
-	# Test and calculate accuracy
+	# Test
 	predictedLabels = model.predict(testFeatures)
-	print("LDA Accuracy: ", accuracy_score(testLabels, predictedLabels))
 
-	return testLabels, predictedLabels
+	return model, testLabels, predictedLabels
 
 
 def testSVM():
@@ -56,8 +55,7 @@ def testSVM():
 
 	testFeatures = reduceWithPCA(testFeatures)  # TODO: to enable PCA, uncomment this line
 
-	# Test and calculate accuracy
+	# Test
 	predictedLabels = modelSVM.predict(testFeatures)
-	print("SVM Accuracy: ", accuracy_score(testLabels, predictedLabels))
 
-	return testLabels, predictedLabels
+	return modelSVM, testLabels, predictedLabels

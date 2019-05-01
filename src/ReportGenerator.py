@@ -1,15 +1,25 @@
 """
-File: Visualization
+File: ReportGenerator
 Author: Emre Sülün
-Date: 20.04.2019
+Date: 1.05.2019
 Project: Sign_Language_Detector
 Description:
 """
 import string
-
 import numpy as np
 import matplotlib.pyplot as plt
+
 from sklearn.metrics import confusion_matrix
+
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
+
+def saveTestResults(model, actualLabels, predictedLabels):
+	print("Model details:", model)
+	print("Accuracy:", accuracy_score(actualLabels, predictedLabels))
+	print("Precision:", precision_score(actualLabels, predictedLabels, average=None))
+	print("Recall:", recall_score(actualLabels, predictedLabels, average=None))
+	print("F1 Score:", f1_score(actualLabels, predictedLabels, average=None))
 
 
 def plotConfusionMatrix(actualLabels, predictedLabels):

@@ -1,5 +1,7 @@
+from src.ReportGenerator import saveTestResults
 from src.Train import trainLDA, trainSVM
-from src.Visualization import plotConfusionMatrix
+from src.ReportGenerator import plotConfusionMatrix
+
 
 # Train
 ldaParameters = {
@@ -11,5 +13,10 @@ trainSVM()
 # Test
 from src.Test import testLDA, testSVM
 
-plotConfusionMatrix(*testLDA())
-plotConfusionMatrix(*testSVM())
+ldaModel, ldaActual, ldaPredicted = testLDA()
+svmModel, svmActual, svmPredicted = testSVM()
+
+plotConfusionMatrix(ldaActual, ldaPredicted)
+plotConfusionMatrix(svmActual, svmPredicted)
+saveTestResults(ldaModel, ldaActual, ldaPredicted)
+saveTestResults(svmModel, svmActual, svmPredicted)
