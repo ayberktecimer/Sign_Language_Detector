@@ -2,25 +2,26 @@ import os
 import pickle
 
 import cv2
-from sklearn.decomposition import PCA
 
 # Load model from saved file
 with open('../generatedModels/modelLDA.obj', 'rb') as fp:
 	model = pickle.load(fp)
 with open('../generatedModels/modelSVM.obj', 'rb') as fp:
 	modelSVM = pickle.load(fp)
+with open('../generatedModels/PCA.obj', 'rb') as fp:
+	pca = pickle.load(fp)
 
 
-def reduceWithPCA(features, n):
-	pca = PCA(n)
-	return pca.fit_transform(features)
+def reduceWithPCA(features):
+	return pca.transform(features)
 
 
 def predict(features, algorithm):
+	reducedFeatures = reduceWithPCA(features)
 	if algorithm == "SVM":
-		return modelSVM.predict(features)
+		return modelSVM.predict(reducedFeatures)
 	elif algorithm == "LDA":
-		return model.predict(features)
+		return model.predict(reducedFeatures)
 	else:
 		raise Exception("Algorithm name is wrong!")
 
@@ -34,7 +35,7 @@ def testLDA():
 		testFeatures.append(cv2.imread("../samples/test/" + imageName, 0).ravel())
 		testLabels.append(imageLabel)
 
-	testFeatures = reduceWithPCA(testFeatures, 50)  # TODO: to enable PCA, uncomment this line
+	testFeatures = reduceWithPCA(testFeatures)  # TODO: to enable PCA, uncomment this line
 
 	# Test and calculate accuracy
 	countTrue = 0
@@ -62,7 +63,7 @@ def testSVM():
 		testFeatures.append(cv2.imread("../samples/test/" + imageName, 0).ravel())
 		testLabels.append(imageLabel)
 
-	testFeatures = reduceWithPCA(testFeatures, 50)  # TODO: to enable PCA, uncomment this line
+	testFeatures = reduceWithPCA(testFeatures)  # TODO: to enable PCA, uncomment this line
 
 	# Test and calculate accuracy
 	countTrue = 0

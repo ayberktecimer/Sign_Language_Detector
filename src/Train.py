@@ -14,10 +14,17 @@ TRAIN_SET_DIRECTORY = "../samples/train/"
 def reduceWithPCA(features, n):
 	pca = PCA(n)
 	pca.fit(features)
+	# Save fitted PCA model to a file
+	with open('../generatedModels/PCA.obj', 'wb') as fp:
+		pickle.dump(pca, fp)
+
+	# Plot something I don't know
 	plt.plot(np.cumsum(pca.explained_variance_ratio_))
 	plt.xlabel("Number of components")
 	plt.ylabel("Cumulative explained variance")
-	return pca.fit_transform(features)
+
+	# Transform features
+	return pca.transform(features)
 
 
 def trainLDA(parameters):
@@ -34,7 +41,7 @@ def trainLDA(parameters):
 		trainFeatures.append(cv2.imread(TRAIN_SET_DIRECTORY + imageName, 0).ravel())
 		trainLabels.append(imageLabel)
 
-	trainFeatures = reduceWithPCA(trainFeatures, 50)  # TODO: to enable PCA, uncomment this line
+	trainFeatures = reduceWithPCA(trainFeatures, 50)
 
 	# Initialize LDA model and train
 	model = LinearDiscriminantAnalysis(**parameters)
