@@ -2,13 +2,8 @@ import os
 import pickle
 
 import cv2
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 # Load model from saved file
-with open('../generatedModels/modelLDA.obj', 'rb') as fp:
-	model = pickle.load(fp)
-with open('../generatedModels/modelSVM.obj', 'rb') as fp:
-	modelSVM = pickle.load(fp)
 with open('../generatedModels/PCA.obj', 'rb') as fp:
 	pca = pickle.load(fp)
 
@@ -28,6 +23,8 @@ def predict(features, algorithm):
 
 
 def testLDA():
+	with open('../generatedModels/modelLDA.obj', 'rb') as fp:
+		model = pickle.load(fp)
 	# Create test features and labels
 	testFeatures = []
 	testLabels = []
@@ -45,6 +42,9 @@ def testLDA():
 
 
 def testSVM():
+	with open('../generatedModels/modelSVM.obj', 'rb') as fp:
+		modelSVM = pickle.load(fp)
+
 	# Create test features and labels
 	testFeatures = []
 	testLabels = []

@@ -27,25 +27,26 @@ def reduceWithPCA(features, n):
 	return pca.transform(features)
 
 
+# Create training features and labels
+trainFeatures = []
+trainLabels = []
+for imageName in os.listdir(TRAIN_SET_DIRECTORY):
+	imageLabel = imageName[0]
+	trainFeatures.append(cv2.imread(TRAIN_SET_DIRECTORY + imageName, 0).ravel())
+	trainLabels.append(imageLabel)
+reducedFeatures = reduceWithPCA(trainFeatures, 50)
+
+
 def trainLDA(parameters):
 	"""
 	Train an LDA model with images in "../samples" folder
 	Finally, save the model to file
 	:return:
 	"""
-	# Create training features and labels
-	trainFeatures = []
-	trainLabels = []
-	for imageName in os.listdir(TRAIN_SET_DIRECTORY):
-		imageLabel = imageName[0]
-		trainFeatures.append(cv2.imread(TRAIN_SET_DIRECTORY + imageName, 0).ravel())
-		trainLabels.append(imageLabel)
-
-	trainFeatures = reduceWithPCA(trainFeatures, 50)
 
 	# Initialize LDA model and train
 	model = LinearDiscriminantAnalysis(**parameters)
-	model.fit(trainFeatures, trainLabels)
+	model.fit(reducedFeatures, trainLabels)
 
 	# Save model to file
 	with open('../generatedModels/modelLDA.obj', 'wb') as fp:
@@ -54,24 +55,16 @@ def trainLDA(parameters):
 	print("LDA training completed and saved to file.")
 
 
-def trainSVM():
+def trainSVM(parameters):
 	"""
 	Train an SVM model with images in "../samples" folder
 	Finally, save the model to file
 	:return:
 	"""
-	trainFeatures = []
-	trainLabels = []
-	for imageName in os.listdir(TRAIN_SET_DIRECTORY):
-		imageLabel = imageName[0]
-		trainFeatures.append(cv2.imread(TRAIN_SET_DIRECTORY + imageName, 0).ravel())
-		trainLabels.append(imageLabel)
-
-	trainFeatures = reduceWithPCA(trainFeatures, 50)  # TODO: to enable PCA, uncomment this line
 
 	# Initialize SVM model and train
-	model = svm.SVC(gamma='scale')
-	model.fit(trainFeatures, trainLabels)
+	model = svm.SVC(**parameters)
+	model.fit(reducedFeatures, trainLabels)
 
 	# Save model to file
 	with open('../generatedModels/modelSVM.obj', 'wb') as fp:

@@ -15,7 +15,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 
 
 def saveTestResults(model, actualLabels, predictedLabels):
-	print("Model details:", model)
+	print("Model details:", model.get_params())
 	print("Accuracy:", accuracy_score(actualLabels, predictedLabels))
 	print("Precision:", precision_score(actualLabels, predictedLabels, average=None))
 	print("Recall:", recall_score(actualLabels, predictedLabels, average=None))
@@ -34,7 +34,8 @@ def plotConfusionMatrix(actualLabels, predictedLabels):
 	plot_confusion_matrix(actualLabels, predictedLabels, classes=class_names, normalize=True,
 						  title='Normalized confusion matrix')
 
-	plt.show()
+
+# plt.show()  # TODO: Uncomment this line to show plots
 
 
 def plot_confusion_matrix(y_true, y_pred, classes, normalize=False, title=None, cmap=plt.cm.Blues):
