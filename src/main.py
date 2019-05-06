@@ -66,9 +66,8 @@ def key_handler(img, word):
 	if keyCode == 115:
 		if img is not None:
 			print("s pressed. Saving picture...")
-			# predicted = predict([img.ravel()], "SVM")
-			# print(predicted)
-			word += "A"
+			predicted = predict([img.ravel()], "SVM")
+			word += str(*predicted)
 
 			if not os.path.exists("../samples/{}".format(FILENAME)):
 				os.makedirs("../samples/{}".format(FILENAME))
