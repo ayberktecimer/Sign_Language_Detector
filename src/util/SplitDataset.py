@@ -12,7 +12,7 @@ import string
 source = '../../samples'
 trainDestination = '../../samples/train'
 testDestination = '../../samples/test'
-TRAIN_SIZE = 60
+TRAIN_SIZE = 50
 
 # Firstly,  merge all files into samples folder
 oldTrainFiles = os.listdir(trainDestination)

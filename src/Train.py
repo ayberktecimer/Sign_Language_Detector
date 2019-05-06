@@ -71,3 +71,7 @@ def trainSVM(parameters):
 		pickle.dump(model, fp)
 
 	print("SVM training completed and saved to file.")
+
+def trainCNN():
+	from src.CnnTrain import train_net
+	cnn_model = train_net(trainFeatures, trainLabels)
