@@ -15,8 +15,12 @@ def reduceWithPCA(features):
 def predict(features, algorithm):
 	reducedFeatures = reduceWithPCA(features)
 	if algorithm == "SVM":
+		with open('../generatedModels/modelSVM.obj', 'rb') as fp:
+			modelSVM = pickle.load(fp)
 		return modelSVM.predict(reducedFeatures)
 	elif algorithm == "LDA":
+		with open('../generatedModels/modelLDA.obj', 'rb') as fp:
+			model = pickle.load(fp)
 		return model.predict(reducedFeatures)
 	else:
 		raise Exception("Algorithm name is wrong!")
