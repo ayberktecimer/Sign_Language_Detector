@@ -28,18 +28,46 @@ trans = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,
 #test_dataset = torchvision.datasets.MNIST(root=DATA_PATH, train=False, transform=trans)
 from src.Train import trainFeatures, trainLabels
 
+
+def map_strings_to_int(trainLabels):
+    mapped_trainLabels = []
+    dict = {
+        'A': 0,
+        'B': 1,
+        'C': 2,
+        'D': 3,
+        'E': 4,
+        'F': 5,
+        'G': 6,
+        'H': 7,
+        'I': 8,
+        'K': 9,
+        'L': 10,
+        'M': 11,
+        'N': 12,
+        'O': 13,
+        'P': 14,
+        'Q': 15,
+        'R': 16,
+        'S': 17,
+        'T': 18,
+        'U': 19,
+        'V': 20,
+        'W': 21,
+        'X': 22,
+        'Y': 23,
+        'Z': 24,
+    }
+    for i in trainLabels:
+        mapped_trainLabels.append(dict[i])
+    return np.asarray(mapped_trainLabels)
+mapped_trainLabels = map_strings_to_int(trainLabels)
+
+trainFeatures_tensor = torch.from_numpy(np.asarray(trainFeatures)).type(torch.DoubleTensor)
+trainLabels_tensor = torch.from_numpy(mapped_trainLabels).type(torch.DoubleTensor)
+
 # Data loader
-train_features = torch.stack([torch.Tensor(i) for i in trainFeatures]) # transform to torch tensors
-# train_labels = torch.stack([torch.Tensor(ord(i)) for i in trainLabels])
-
-train_labels = []
-for i in trainLabels:
-    to_add = torch.Tensor(ord(i))
-    train_labels.append(to_add)
-
-train_labels = torch.stack(train_labels)
-
-train_dataset = utils.TensorDataset(train_features,train_labels) # create your datset
+train_dataset = utils.TensorDataset(trainFeatures_tensor,trainLabels_tensor) # create your datset
 train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 
 testFeatures = []
@@ -49,15 +77,20 @@ for imageName in os.listdir("../samples/test"):
     testFeatures.append(cv2.imread("../samples/test/" + imageName, 0).ravel())
     testLabels.append(imageLabel)
 
-test_features = torch.stack([torch.Tensor(i) for i in testFeatures]) # transform to torch tensors
-test_labels = torch.stack([torch.Tensor(i) for i in testLabels])
-test_dataset = utils.TensorDataset(test_features,test_labels)
+
+testFeatures_tensor = torch.from_numpy(np.asarray(testFeatures)).type(torch.DoubleTensor)
+mapped_testLabels = map_strings_to_int(testLabels)
+testLabels_tensor = torch.from_numpy(mapped_testLabels).type(torch.DoubleTensor)
+
+test_dataset = utils.TensorDataset(testFeatures_tensor,testLabels_tensor)
 test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
 
+
+# Convolutional neural network (two convolutional layers)
 # Convolutional neural network (two convolutional layers)
 class ConvNet(nn.Module):
-    def _init_(self):
-        super(ConvNet, self)._init_()
+    def __init__(self):
+        super(ConvNet, self).__init__()
         self.layer1 = nn.Sequential(
             nn.Conv2d(1, 32, kernel_size=5, stride=1, padding=2),
             nn.ReLU(),
@@ -67,8 +100,8 @@ class ConvNet(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2))
         #self.drop_out = nn.Dropout()
-        self.fc1 = nn.Linear(7 * 7 * 64, 1000)
-        self.fc2 = nn.Linear(1000, 10)
+        self.fc1 = nn.Linear(75 * 75 * 64, 2500)
+        self.fc2 = nn.Linear(2500, 25)
 
     def forward(self, x):
         out = self.layer1(x)
@@ -81,7 +114,7 @@ class ConvNet(nn.Module):
 
 
 model = ConvNet()
-
+model = model.float()
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -93,7 +126,8 @@ acc_list = []
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):
         # Run the forward pass
-        outputs = model(images)
+        images = images.reshape(100,1,300,300)
+        outputs = model(images.float())
         loss = criterion(outputs, labels)
         loss_list.append(loss.item())
 
@@ -112,7 +146,7 @@ for epoch in range(num_epochs):
             print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, Accuracy: {:.2f}%'
                   .format(epoch + 1, num_epochs, i + 1, total_step, loss.item(),
                           (correct / total) * 100))
-
+        print("")
 # Test the model
 model.eval()
 with torch.no_grad():

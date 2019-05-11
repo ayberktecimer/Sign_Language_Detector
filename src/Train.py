@@ -30,9 +30,14 @@ def reduceWithPCA(features, n):
 # Create training features and labels
 trainFeatures = []
 trainLabels = []
+
 for imageName in os.listdir(TRAIN_SET_DIRECTORY):
+
 	imageLabel = imageName[0]
-	trainFeatures.append(cv2.imread(TRAIN_SET_DIRECTORY + imageName, 0).ravel())
+	try:
+		trainFeatures.append(cv2.imread(TRAIN_SET_DIRECTORY + imageName, 0).ravel())
+	except:
+		pass
 	trainLabels.append(imageLabel)
 reducedFeatures = reduceWithPCA(trainFeatures, 50)
 
