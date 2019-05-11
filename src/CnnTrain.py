@@ -13,7 +13,7 @@ import cv2
 
 # Hyperparameters
 num_epochs = 6
-num_classes = 10
+num_classes = 25
 batch_size = 100
 learning_rate = 0.001
 
@@ -60,11 +60,11 @@ def map_strings_to_int(trainLabels):
     }
     for i in trainLabels:
         mapped_trainLabels.append(dict[i])
-    return np.asarray(mapped_trainLabels)
+    return np.asarray(mapped_trainLabels,dtype='int64')
 mapped_trainLabels = map_strings_to_int(trainLabels)
 
-trainFeatures_tensor = torch.from_numpy(np.asarray(trainFeatures)).type(torch.DoubleTensor)
-trainLabels_tensor = torch.from_numpy(mapped_trainLabels).type(torch.DoubleTensor)
+trainFeatures_tensor = torch.from_numpy(np.asarray(trainFeatures,dtype='float32'))
+trainLabels_tensor = torch.from_numpy(mapped_trainLabels)
 
 # Data loader
 train_dataset = utils.TensorDataset(trainFeatures_tensor,trainLabels_tensor) # create your datset
@@ -78,9 +78,9 @@ for imageName in os.listdir("../samples/test"):
     testLabels.append(imageLabel)
 
 
-testFeatures_tensor = torch.from_numpy(np.asarray(testFeatures)).type(torch.DoubleTensor)
+testFeatures_tensor = torch.from_numpy(np.asarray(testFeatures,dtype='float32'))
 mapped_testLabels = map_strings_to_int(testLabels)
-testLabels_tensor = torch.from_numpy(mapped_testLabels).type(torch.DoubleTensor)
+testLabels_tensor = torch.from_numpy(mapped_testLabels)
 
 test_dataset = utils.TensorDataset(testFeatures_tensor,testLabels_tensor)
 test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
@@ -114,7 +114,7 @@ class ConvNet(nn.Module):
 
 
 model = ConvNet()
-model = model.float()
+#model = model.float()
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -127,7 +127,7 @@ for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):
         # Run the forward pass
         images = images.reshape(100,1,300,300)
-        outputs = model(images.float())
+        outputs = model(images)
         loss = criterion(outputs, labels)
         loss_list.append(loss.item())
 
@@ -139,7 +139,10 @@ for epoch in range(num_epochs):
         # Track the accuracy
         total = labels.size(0)
         _, predicted = torch.max(outputs, 1)
-        correct = (predicted == labels).sum().item()
+        correct = 0
+        for i in range(0,100):
+            if predicted[i] == labels[i]:
+                correct +=1
         acc_list.append(correct / total)
 
         if (i + 1) % 100 == 0:
