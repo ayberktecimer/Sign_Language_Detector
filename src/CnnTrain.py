@@ -125,6 +125,7 @@ loss_list = []
 acc_list = []
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):
+        print("i",i)
         # Run the forward pass
         images = images.reshape(100,1,300,300)
         outputs = model(images)
@@ -140,16 +141,16 @@ for epoch in range(num_epochs):
         total = labels.size(0)
         _, predicted = torch.max(outputs, 1)
         correct = 0
-        for i in range(0,100):
-            if predicted[i] == labels[i]:
+        for j in range(0,100):
+            if predicted[j] == labels[j]:
                 correct +=1
         acc_list.append(correct / total)
-
-        if (i + 1) % 100 == 0:
+        print("Acc:",(correct/total))
+        if (i + 1) % 17 == 0:
             print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, Accuracy: {:.2f}%'
                   .format(epoch + 1, num_epochs, i + 1, total_step, loss.item(),
                           (correct / total) * 100))
-        print("")
+    print("")
 # Test the model
 model.eval()
 with torch.no_grad():
