@@ -1,84 +1,140 @@
-import numpy as np
 import torch
-import torchvision
+import torch.nn as nn
+from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
-from torch.autograd import Variable
-import torch.nn.functional as F
+import torchvision.datasets
+from bokeh.plotting import figure
+from bokeh.io import show
+from bokeh.models import LinearAxis, Range1d
+import numpy as np
+import torch.utils.data as utils
+import os
+import cv2
 
-'''
+# Hyperparameters
+num_epochs = 6
+num_classes = 10
+batch_size = 100
+learning_rate = 0.001
 
-'''
-CONST_INPUT_CHANNEL = 1
-output_channel = [5,2]
-kernel_size = [3,4]
-stride = [2,1]
-padding = [1,1]
-num_of_conv_layer = 2
+DATA_PATH = '../MNISTData'
+MODEL_STORE_PATH = '../pytorch_models'
 
-pool_kernel_size = [2,2]
-pool_stride = [2,1]
-pool_padding = [1,2]
+# transforms to apply to the data
+trans = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
 
-def initialize_params(output_channel,kernel_size,stride,padding,num_of_conv_layer, pool_kernel_size,pool_stride, pool_padding):
-    params = []
-    for i in range(num_of_conv_layer):
-        params.append({
-            'output_channel': output_channel[i],
-            'kernel_size': kernel_size[i],
-            'stride': stride[i],
-            'padding': padding[i],
-            'num_of_conv': num_of_conv_layer[i],
-            'pool_kernel_size': pool_kernel_size[i],
-            'pool_stride' : pool_stride[i],
-            'pool_padding' : pool_padding[i]
-    })
-    return params
+# MNIST dataset
+#train_dataset = torchvision.datasets.MNIST(root=DATA_PATH, train=True, transform=trans, download=True)
+#test_dataset = torchvision.datasets.MNIST(root=DATA_PATH, train=False, transform=trans)
+from src.Train import trainFeatures, trainLabels
 
-params = initialize_params(output_channel,kernel_size,stride,padding,num_of_conv_layer,pool_kernel_size,pool_stride, pool_padding)
+# Data loader
+train_features = torch.stack([torch.Tensor(i) for i in trainFeatures]) # transform to torch tensors
+# train_labels = torch.stack([torch.Tensor(ord(i)) for i in trainLabels])
 
-class CNN(torch.nn.Module):
+train_labels = []
+for i in trainLabels:
+    to_add = torch.Tensor(ord(i))
+    train_labels.append(to_add)
 
-    '''
-        Constructing CNN
-    '''
+train_labels = torch.stack(train_labels)
 
-    def __init__(self, params):
-        super(CNN, self).__init__()
-        self.conv_outputs = []
-        for i in range(params['num_of_conv_layer']):
-            self.conv_outputs.append( torch.nn.Conv2d(CONST_INPUT_CHANNEL, params['output_channel'][i]
-                                                      ,kernel_size=params['kernel_size'][i],
-                                                      stride= params['stride'][i], padding=params['padding'][i]))
-        self.pool = torch.nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+train_dataset = utils.TensorDataset(train_features,train_labels) # create your datset
+train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 
-        # 4608 input features, 64 output features (see sizing flow below)
-        self.fc1 = torch.nn.Linear(18 * 16 * 16, 64)
+testFeatures = []
+testLabels = []
+for imageName in os.listdir("../samples/test"):
+    imageLabel = imageName[0]
+    testFeatures.append(cv2.imread("../samples/test/" + imageName, 0).ravel())
+    testLabels.append(imageLabel)
 
-        # 64 input features, 10 output features for our 10 defined classes
-        self.fc2 = torch.nn.Linear(64, 10)
+test_features = torch.stack([torch.Tensor(i) for i in testFeatures]) # transform to torch tensors
+test_labels = torch.stack([torch.Tensor(i) for i in testLabels])
+test_dataset = utils.TensorDataset(test_features,test_labels)
+test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
+
+# Convolutional neural network (two convolutional layers)
+class ConvNet(nn.Module):
+    def _init_(self):
+        super(ConvNet, self)._init_()
+        self.layer1 = nn.Sequential(
+            nn.Conv2d(1, 32, kernel_size=5, stride=1, padding=2),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2))
+        self.layer2 = nn.Sequential(
+            nn.Conv2d(32, 64, kernel_size=5, stride=1, padding=2),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2))
+        #self.drop_out = nn.Dropout()
+        self.fc1 = nn.Linear(7 * 7 * 64, 1000)
+        self.fc2 = nn.Linear(1000, 10)
 
     def forward(self, x):
-        # Computes the activation of the first convolution
-        # Size changes from (3, 32, 32) to (18, 32, 32)
-        x = F.relu(self.conv1(x))
+        out = self.layer1(x)
+        out = self.layer2(out)
+        out = out.reshape(out.size(0), -1)
+        #out = self.drop_out(out)
+        out = self.fc1(out)
+        out = self.fc2(out)
+        return out
 
-        # Size changes from (18, 32, 32) to (18, 16, 16)
-        x = self.pool(x)
 
-        # Reshape data to input to the input layer of the neural net
-        # Size changes from (18, 16, 16) to (1, 4608)
-        # Recall that the -1 infers this dimension from the other given dimension
-        x = x.view(-1, 18 * 16 * 16)
+model = ConvNet()
 
-        # Computes the activation of the first fully connected layer
-        # Size changes from (1, 4608) to (1, 64)
-        x = F.relu(self.fc1(x))
+# Loss and optimizer
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-        # Computes the second fully connected layer (activation applied later)
-        # Size changes from (1, 64) to (1, 10)
-        x = self.fc2(x)
-        return (x)
+# Train the model
+total_step = len(train_loader)
+loss_list = []
+acc_list = []
+for epoch in range(num_epochs):
+    for i, (images, labels) in enumerate(train_loader):
+        # Run the forward pass
+        outputs = model(images)
+        loss = criterion(outputs, labels)
+        loss_list.append(loss.item())
 
+        # Backprop and perform Adam optimisation
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        # Track the accuracy
+        total = labels.size(0)
+        _, predicted = torch.max(outputs, 1)
+        correct = (predicted == labels).sum().item()
+        acc_list.append(correct / total)
+
+        if (i + 1) % 100 == 0:
+            print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, Accuracy: {:.2f}%'
+                  .format(epoch + 1, num_epochs, i + 1, total_step, loss.item(),
+                          (correct / total) * 100))
+
+# Test the model
+model.eval()
+with torch.no_grad():
+    correct = 0
+    total = 0
+    for images, labels in test_loader:
+        outputs = model(images)
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+    print('Test Accuracy of the model on the 10000 test images: {} %'.format((correct / total) * 100))
+
+# Save the model and plot
+torch.save(model.state_dict(), MODEL_STORE_PATH + 'conv_net_model.ckpt')
+
+p = figure(y_axis_label='Loss', width=850, y_range=(0, 1), title='PyTorch ConvNet results')
+p.extra_y_ranges = {'Accuracy': Range1d(start=0, end=100)}
+p.add_layout(LinearAxis(y_range_name='Accuracy', axis_label='Accuracy (%)'), 'right')
+p.line(np.arange(len(loss_list)), loss_list)
+p.line(np.arange(len(loss_list)), np.array(acc_list) * 100, y_range_name='Accuracy', color='red')
+show(p)
 
 def train_net(trainFeatures,trainLabels):
     return 0
