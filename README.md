@@ -17,3 +17,11 @@ Content <br />
 Image size is 300x300 <br />
 The first letter indicates the label (e.g. A-1554389290.JPG) <br />
 "J" is missing
+
+## Team Members
+Implemented with great efforts of
+* [Fuad Aghazada](https://github.com/fuadaghazada/)
+* [K. Ayberk Tecimer](https://github.com/ayberktecimer)
+* [Emre Sülün](https://github.com/sulunemre) 
+* [Adahan Yalçınkaya](https://github.com/adahan96)
+* [Eray Şahin](https://github.com/eraysahin)
