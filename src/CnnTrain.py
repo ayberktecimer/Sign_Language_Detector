@@ -1,75 +1,66 @@
+import os
+
+import cv2
+import numpy as np
+
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
-import torchvision.datasets
-from bokeh.plotting import figure
-from bokeh.io import show
-from bokeh.models import LinearAxis, Range1d
-import numpy as np
 import torch.utils.data as utils
-import os
-import cv2
 
-# Hyperparameters
-num_epochs = 6
+import matplotlib.pyplot as plt
+
+from src.Train import trainFeatures, trainLabels
+from src.util.MapStrings import map_strings_to_int
+
+# Constant
+IMAGE_SIZE = 300
+
+# --- HYPER-PARAMETERS --
+# Convolution
+params = {
+    'featureMaps': [1, 32, 25],
+    'numOfConvLayers': 1,
+    'convKernelSizes': [5],
+    'convStrides': [2],
+    'convPaddings': [0],
+    'poolStrides': [2],
+    'poolKernelSizes': [2],
+    'numOfFullyConnectedLayers': 2,
+    'hiddenLayers': [2500]
+}
+
+
+def outputSize(in_size, kernel_size, stride, padding):
+    output = int((in_size - kernel_size + 2*(padding)) / stride) + 1
+    return(output)
+
+# Neural Network
+num_epochs = 10
 num_classes = 25
 batch_size = 100
 learning_rate = 0.001
 
-DATA_PATH = '../MNISTData'
-MODEL_STORE_PATH = '../pytorch_models'
+# Storing model path
+MODEL_STORE_PATH = '../generatedModels/'
+
+# --- DATA TRANSFORM AND LOADING ---
 
 # transforms to apply to the data
 trans = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
 
-# MNIST dataset
-#train_dataset = torchvision.datasets.MNIST(root=DATA_PATH, train=True, transform=trans, download=True)
-#test_dataset = torchvision.datasets.MNIST(root=DATA_PATH, train=False, transform=trans)
-from src.Train import trainFeatures, trainLabels
-
-
-def map_strings_to_int(trainLabels):
-    mapped_trainLabels = []
-    dict = {
-        'A': 0,
-        'B': 1,
-        'C': 2,
-        'D': 3,
-        'E': 4,
-        'F': 5,
-        'G': 6,
-        'H': 7,
-        'I': 8,
-        'K': 9,
-        'L': 10,
-        'M': 11,
-        'N': 12,
-        'O': 13,
-        'P': 14,
-        'Q': 15,
-        'R': 16,
-        'S': 17,
-        'T': 18,
-        'U': 19,
-        'V': 20,
-        'W': 21,
-        'X': 22,
-        'Y': 23,
-        'Z': 24,
-    }
-    for i in trainLabels:
-        mapped_trainLabels.append(dict[i])
-    return np.asarray(mapped_trainLabels,dtype='int64')
 mapped_trainLabels = map_strings_to_int(trainLabels)
 
 trainFeatures_tensor = torch.from_numpy(np.asarray(trainFeatures,dtype='float32'))
 trainLabels_tensor = torch.from_numpy(mapped_trainLabels)
 
-# Data loader
+# ***** Data loader *****
+# ____TRAIN LOADER____
 train_dataset = utils.TensorDataset(trainFeatures_tensor,trainLabels_tensor) # create your datset
 train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 
+# Test Features and labels
 testFeatures = []
 testLabels = []
 for imageName in os.listdir("../samples/test"):
@@ -77,44 +68,95 @@ for imageName in os.listdir("../samples/test"):
     testFeatures.append(cv2.imread("../samples/test/" + imageName, 0).ravel())
     testLabels.append(imageLabel)
 
-
+# Converting the Test features/labels from Numpy to Tensors
 testFeatures_tensor = torch.from_numpy(np.asarray(testFeatures,dtype='float32'))
 mapped_testLabels = map_strings_to_int(testLabels)
 testLabels_tensor = torch.from_numpy(mapped_testLabels)
 
+# ____TEST LOADER____
 test_dataset = utils.TensorDataset(testFeatures_tensor,testLabels_tensor)
 test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
 
+# --- END OF DATA LOADING AND TRANSFORM --
 
-# Convolutional neural network (two convolutional layers)
-# Convolutional neural network (two convolutional layers)
+# Convolutional Neural Network
+
+
 class ConvNet(nn.Module):
-    def __init__(self):
+    def __init__(self, params):
         super(ConvNet, self).__init__()
-        self.layer1 = nn.Sequential(
-            nn.Conv2d(1, 32, kernel_size=5, stride=1, padding=2),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2))
-        self.layer2 = nn.Sequential(
-            nn.Conv2d(32, 64, kernel_size=5, stride=1, padding=2),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2))
-        #self.drop_out = nn.Dropout()
-        self.fc1 = nn.Linear(75 * 75 * 64, 2500)
-        self.fc2 = nn.Linear(2500, 25)
+
+        # Initially Image Size (300)
+        out_size = IMAGE_SIZE
+
+        # Convolutional layers
+        for i in range(params['numOfConvLayers']):
+            # Parameters
+            conv_in = params['featureMaps'][i]
+            conv_out = params['featureMaps'][i + 1]
+
+            # Convolution
+            kernel_size = params['convKernelSizes'][i]
+            stride = params['convStrides'][i]
+            padding = params['convPaddings'][i]
+
+            # Output size after convolution
+            out_size = outputSize(out_size, kernel_size, stride, padding)
+
+            # Pooling
+            p_kernel_size = params['poolKernelSizes'][i]
+            p_stride = params['poolStrides'][i]
+
+            # Output size after pooling
+            out_size = outputSize(out_size, p_kernel_size, p_stride, 0)
+
+            layer = """nn.Sequential(nn.Conv2d(%d, %d, kernel_size=%d, stride=%d, padding=%d),
+                                  nn.ReLU(),
+                                  nn.MaxPool2d(kernel_size=%d, stride=%d))""" % (conv_in, conv_out, kernel_size, stride, padding, p_kernel_size, p_stride)
+
+            exec("self.layer%d = %s" % (i + 1, layer))
+
+        # Fully connected
+        final_feature_maps = params['featureMaps'][-2]
+        num_labels = params['featureMaps'][-1]
+
+        for i in range(params['numOfFullyConnectedLayers']):
+            if i == 0:
+                fc = """nn.Linear(%d, %d)""" % (out_size * out_size * final_feature_maps, params['hiddenLayers'][i])
+                exec("self.fc%d = %s" % (i + 1, fc))
+            elif i == params['numOfFullyConnectedLayers'] - 1:
+                fc = """nn.Linear(%d, %d)""" % (params['hiddenLayers'][i - 1], num_labels)
+                exec("self.fc%d = %s" % (i + 1, fc))
+            else:
+                fc = """nn.Linear(%d, %d)""" % (params['hiddenLayers'][i], params['hiddenLayers'][i + 1])
+                exec("self.fc%d = %s" % (i + 1, fc))
 
     def forward(self, x):
-        out = self.layer1(x)
-        out = self.layer2(out)
+
+        out = x
+
+        out = self.layer1(out)
+        # out = self.layer2(out)
+
+        # for i in range(params['numOfConvLayers']):
+        #     print("out = self.layer%d(out)" % (i + 1))
+        #     out = exec("self.layer%d(out)" % (i + 1))
+
         out = out.reshape(out.size(0), -1)
-        #out = self.drop_out(out)
+
+        # for i in range(params['numOfFullyConnectedLayers']):
+        #     print("out = self.fc%d(out)" % (i + 1))
+        #     out = exec("self.fc%d(out)" % (i + 1))
+
         out = self.fc1(out)
         out = self.fc2(out)
+
         return out
 
 
-model = ConvNet()
-#model = model.float()
+# CNN Model
+model = ConvNet(params)
+
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -125,14 +167,15 @@ loss_list = []
 acc_list = []
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):
-        print("i",i)
+
         # Run the forward pass
-        images = images.reshape(100,1,300,300)
+        images = images.reshape(100, 1, 300, 300)
         outputs = model(images)
         loss = criterion(outputs, labels)
-        loss_list.append(loss.item())
+        # Normalization
+        loss_list.append(loss.item() / 1000)
 
-        # Backprop and perform Adam optimisation
+        # Back-propagation and perform Adam optimisation
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -140,39 +183,45 @@ for epoch in range(num_epochs):
         # Track the accuracy
         total = labels.size(0)
         _, predicted = torch.max(outputs, 1)
+
         correct = 0
-        for j in range(0,100):
+        for j in range(0, 100):
             if predicted[j] == labels[j]:
                 correct +=1
         acc_list.append(correct / total)
-        print("Acc:",(correct/total))
+
+        # Log
+        print("Iteration:", i)
+        print("Accuracy:",(correct/total))
+        print("Loss:", loss.item() / 1000)
+        print("--------")
+
         if (i + 1) % 17 == 0:
-            print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, Accuracy: {:.2f}%'
-                  .format(epoch + 1, num_epochs, i + 1, total_step, loss.item(),
-                          (correct / total) * 100))
-    print("")
+            print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, Accuracy: {:.2f}%'.format(epoch + 1, num_epochs, i + 1, total_step, loss.item(), (correct / total) * 100))
+
 # Test the model
 model.eval()
 with torch.no_grad():
     correct = 0
     total = 0
+    numOfSamples = 100
     for images, labels in test_loader:
+        if images.shape[0] < 100:
+            break
+
+        images = images.reshape(numOfSamples, 1, 300, 300)
         outputs = model(images)
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
-        correct += (predicted == labels).sum().item()
+        correct = 0
+        for j in range(0, 100):
+            if predicted[j] == labels[j]:
+                correct += 1
 
-    print('Test Accuracy of the model on the 10000 test images: {} %'.format((correct / total) * 100))
+    print('Test Accuracy of the model on the 400 test images: {} %'.format((correct / total) * 100))
 
 # Save the model and plot
 torch.save(model.state_dict(), MODEL_STORE_PATH + 'conv_net_model.ckpt')
 
-p = figure(y_axis_label='Loss', width=850, y_range=(0, 1), title='PyTorch ConvNet results')
-p.extra_y_ranges = {'Accuracy': Range1d(start=0, end=100)}
-p.add_layout(LinearAxis(y_range_name='Accuracy', axis_label='Accuracy (%)'), 'right')
-p.line(np.arange(len(loss_list)), loss_list)
-p.line(np.arange(len(loss_list)), np.array(acc_list) * 100, y_range_name='Accuracy', color='red')
-show(p)
-
-def train_net(trainFeatures,trainLabels):
-    return 0
+# Train Loss vs Iterations
+del loss_list[0]
